@@ -1,0 +1,133 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { UserCog, Repeat, LogOut, X, ChevronRight, Palette } from 'lucide-react-native';
+import Animated, { SlideInDown, FadeIn } from 'react-native-reanimated';
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../context/AuthContext'; // Ensure you have this
+
+interface Props {
+  isVisible: boolean;
+  onClose: () => void;
+  babyName: string;
+}
+
+export default function SettingsModal({ isVisible, onClose, babyName }: Props) {
+  const navigation = useNavigation();
+  const { logout } = useAuth(); // Assuming your AuthContext exposes logout
+
+  if (!isVisible) return null;
+
+  const handleSwitch = () => {
+    onClose();
+    navigation.navigate('ProfileSelector' as never);
+  };
+
+  const handleEdit = () => {
+    onClose();
+    // We will build this screen next
+    navigation.navigate('EditBaby' as never);
+  };
+
+  const handleLogout = async () => {
+    onClose();
+    await logout();
+  };
+
+  return (
+    <Modal transparent visible={isVisible} animationType="fade" onRequestClose={onClose}>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View className="flex-1 bg-black/60 justify-end">
+          <TouchableWithoutFeedback>
+            <Animated.View 
+              entering={SlideInDown.springify().damping(15)}
+              className="bg-slate-900 border-t border-slate-800 rounded-t-3xl overflow-hidden"
+            >
+              {/* Header */}
+              <View className="flex-row items-center justify-between p-6 border-b border-slate-800/50">
+                <Text className="text-white text-xl font-bold">
+                  Settings for {babyName}
+                </Text>
+                <TouchableOpacity onPress={onClose} className="bg-slate-800 p-2 rounded-full">
+                  <X size={20} color="#cbd5e1" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Menu Options */}
+              <View className="p-6 gap-4 pb-12">
+                
+                {/* Edit Profile */}
+                <MenuOption 
+                  icon={UserCog} 
+                  label="Edit Profile" 
+                  subLabel="Update name, photo, or birthday"
+                  color="#818cf8"
+                  onPress={handleEdit}
+                />
+
+                {/* Switch Baby */}
+                <MenuOption 
+                  icon={Repeat} 
+                  label="Switch Baby" 
+                  subLabel="Select a different profile"
+                  color="#34d399"
+                  onPress={handleSwitch}
+                />
+
+                {/* Theme (Coming Soon) */}
+                <MenuOption 
+                  icon={Palette} 
+                  label="App Theme" 
+                  subLabel="Customize colors (Coming Soon)"
+                  color="#fbbf24"
+                  onPress={() => {}}
+                  disabled
+                />
+
+                {/* Divider */}
+                <View className="h-[1px] bg-slate-800 my-2" />
+
+                {/* Logout */}
+                <TouchableOpacity 
+                  onPress={handleLogout}
+                  className="flex-row items-center justify-between bg-red-500/10 p-4 rounded-2xl border border-red-500/20 active:bg-red-500/20"
+                >
+                  <View className="flex-row items-center gap-4">
+                    <View className="bg-red-500/20 p-2 rounded-full">
+                      <LogOut size={22} color="#ef4444" />
+                    </View>
+                    <Text className="text-red-400 font-semibold text-lg">Sign Out</Text>
+                  </View>
+                </TouchableOpacity>
+
+              </View>
+            </Animated.View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
+  );
+}
+
+// Helper Component for Menu Items
+function MenuOption({ icon: Icon, label, subLabel, color, onPress, disabled }: any) {
+  return (
+    <TouchableOpacity 
+      onPress={onPress}
+      disabled={disabled}
+      activeOpacity={0.7}
+      className={`flex-row items-center justify-between bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50 ${disabled ? 'opacity-50' : ''}`}
+    >
+      <View className="flex-row items-center gap-4">
+        <View style={{ backgroundColor: `${color}20` }} className="p-3 rounded-full">
+          <Icon size={22} color={color} />
+        </View>
+        <View>
+          <Text className="text-white font-semibold text-lg">{label}</Text>
+          <Text className="text-slate-400 text-xs">{subLabel}</Text>
+        </View>
+      </View>
+      <ChevronRight size={20} color="#475569" />
+    </TouchableOpacity>
+  );
+}
